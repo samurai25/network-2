@@ -1,0 +1,144 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+
+    {% if profile %}
+        {% for user in profile %}
+            <h2>Profile: {{user.username}}</h2>
+            <h3>Followers: {{user.has_followers}}</h3>
+            <h3>Following: {{count}}</h3>
+        {% endfor %}
+    {% else %}
+        <h2>Profile: {{username}}</h2>
+        <h3>Followers: {{user.has_followers}}</h3>
+        <h3>Following: {{user.following_people}}</h3>
+    {% endif %}
+
+    <div id="app"></div>
+
+    <script type="text/babel">
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+
+        function DjangoCSRFToken() {
+            return (
+                <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
+            );
+        };
+
+        const postStyles = {
+            height: '200px',
+            margin: '15px',
+            border: '1px solid grey',
+            borderRadius: '5px',
+            padding: '10px'
+        }
+
+
+        function PeginationNav() {
+            return (
+                <div>
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page={{page_obj.previous_page_number}}">Previous</a></li>
+                            {% endif %}
+                            <li class="page-item"><a class="page-link" href="#"><span>{{page_obj.number}}</span></a></li>
+                            {% if page_obj.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{page_obj.next_page_number}}">Next</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            );
+        };
+        
+
+        function Post(props) {
+            return (
+                <div>
+                    <form action="{% url 'network:profile' %}" method="post">
+                        <DjangoCSRFToken />
+                        <div style={postStyles}>
+                            <h2>{props.username}</h2>       
+                            <p>{props.content}</p>
+                            <p>{props.created_at}</p>
+                            <p>Likes: {props.likes}</p>
+                        </div>
+                    </form>
+                </div>
+            );
+        }
+
+        function FollowButton() {
+
+            return (
+                <div>
+                    {% if user.is_authenticated %}
+                        {% if profile %}
+                            <form action="{% url 'network:user_profile' user.username %}" method="post">
+                                <DjangoCSRFToken />
+                                {% for user in profile %}
+                                    {% if user.username != username %}
+                                        {% if is_followed %}
+                                            <input hidden type="text" name="user" value="{{user.username}}" />
+                                            <input class="btn btn-primary" name="follow_button" id="follow_button" type="submit" value="Unfollow" />
+                                        {% else %}
+                                            <input hidden type="text" name="user" value="{{user.username}}" />
+                                            <input class="btn btn-primary" name="follow_button" id="follow_button" type="submit" value="Follow" />
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}  
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            );
+        }
+
+        const style = {
+            textAlign: "center"
+        }
+
+
+        function App() {
+
+            return (
+                <div>
+                    <FollowButton />
+                    <h4 style={style}>All Posts</h4>
+        
+                        {% for post in page_obj %}
+                            <Post 
+                                username="{{post.username}}" 
+                                content="{{post.content}}"
+                                created_at="{{post.created_at}}"
+                                likes="{{post.likes}}" />
+                        {% endfor %}
+
+                        
+                    <PeginationNav />
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.querySelector('#app'));
+    </script>
+    
+{% endblock %}

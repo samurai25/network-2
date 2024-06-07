@@ -1,0 +1,115 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+
+{% if user.is_authenticated %}
+    <h2>{{ post.username }}</h2>
+
+    <div id="app"></div>
+        
+        <script type="text/babel">
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getCookie('csrftoken');
+
+
+            function DjangoCSRFToken() {
+                return (
+                    <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
+                );
+            };
+
+            const editPostStyles = {
+                padding: '15px'
+            }
+
+            function PostForm() {
+                return (
+                    <div>
+                        {{ form }}
+                    </div>
+                );
+            }
+
+            function EditPost(props) {
+                
+                return (
+                    <div>
+                        <form style={editPostStyles} action="{% url 'network:edit' %}" method="post">
+                            <DjangoCSRFToken />
+                            <PostForm />
+                            <input type="text" name="id" value={props.post_id} hidden />
+                            <input type="submit" class="btn btn-primary" value="Save" />
+                        </form>
+                    </div>
+                );
+
+            }
+
+            const btnStyles = {
+                border: "none",
+                fontWeight: "bold",
+                backgroundColor: "white",
+                padding: "0",
+                marginBottom: "10px"
+            }
+
+            function PeginationNav() {
+                return (
+                    <div>
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item"><a class="page-link" href="?page={{page_obj.previous_page_number}}">Previous</a></li>
+                                {% endif %}
+                                <li class="page-item"><a class="page-link" href="#"><span>{{page_obj.number}}</span></a></li>
+                                {% if page_obj.has_next %}
+                                    <li class="page-item"><a class="page-link" href="?page={{page_obj.next_page_number}}">Next</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                );
+            }
+
+            const divStyles = {
+                border: "1px solid grey",
+                borderRadius: "5px",
+                padding: "10px",
+                margin: "15px"
+            };
+
+            function App() {
+
+                return (
+                    <div>
+                        <div style={divStyles}>
+                            <h3>Edit Post</h3>
+                            <EditPost post_id="{{post.id}}" />
+                        </div>
+                    </div>
+                );
+            }
+
+            ReactDOM.render(<App />, document.querySelector('#app'));
+        </script>
+
+{% else %}
+    <h2>Log in to edit the post.</h2>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends "network/layout.html" %}
+{% load static %}
+{% block body %}
+
+    <h2>Following</h2>
+    
+    {% if user.is_authenticated %}
+
+        <div id="app"></div>
+
+        <script type="text/babel">
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getCookie('csrftoken');
+    
+    
+            function DjangoCSRFToken() {
+                return (
+                    <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
+                );
+            };
+    
+            const btnStyles = {
+                border: "none",
+                fontWeight: "bold",
+                backgroundColor: "white",
+                padding: "0",
+                marginBottom: "10px"
+            }
+            
+            const postStyles = {
+                height: '200px',
+                margin: '15px',
+                border: '1px solid grey',
+                borderRadius: '5px',
+                padding: '10px'
+            }
+
+            const style = {
+                textAlign: "center"
+            }
+
+            function PeginationNav() {
+                return (
+                    <div>
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item"><a class="page-link" href="?page={{page_obj.previous_page_number}}">Previous</a></li>
+                                {% endif %}
+                                <li class="page-item"><a class="page-link" href="#"><span>{{page_obj.number}}</span></a></li>
+                                {% if page_obj.has_next %}
+                                    <li class="page-item"><a class="page-link" href="?page={{page_obj.next_page_number}}">Next</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                );
+            }
+    
+    
+            function Post(props) {
+                return (
+                    <div>
+                        <form action="{% url 'network:profile' %}" method="post">
+                            <DjangoCSRFToken />
+                            <div style={postStyles}>
+                                <a href="{% url 'network:profile' %}">
+                                    <input 
+                                        style={btnStyles} 
+                                        type="submit" 
+                                        name="profile" 
+                                        value={props.username} 
+                                    />
+                                </a>        
+                                <p>{props.content}</p>
+                                <p>{props.created_at}</p>
+                                <p>Likes: {props.likes}</p>
+                            </div>
+                        </form>
+                    </div>
+                );
+            }
+    
+    
+            function App() {
+    
+                return (
+                    <div>
+                        <h2>All Posts</h2>
+                        {% for post in page_obj %}
+                            <Post 
+                                username="{{post.username}}" 
+                                content="{{post.content}}"
+                                created_at="{{post.created_at}}"
+                                likes="{{post.likes}}" />
+                        {% endfor %}
+                        <PeginationNav />
+                    </div>
+                );
+            }
+
+            ReactDOM.render(<App />, document.querySelector('#app'));
+        </script>
+
+    {% endif %}
+
+{% endblock %}
