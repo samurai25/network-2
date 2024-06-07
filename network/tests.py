@@ -82,7 +82,7 @@ class TestPages(TestCase):
         self.client = Client()
         
     def test_index(self):
-        response = self.client.get('/')
+        response = self.client.get('/indexs')
         self.assertEqual(response.status_code, 200)
         
     def test_profile(self):
